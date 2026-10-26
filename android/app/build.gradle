@@ -1,0 +1,76 @@
+plugins {
+    id 'com.android.application'
+}
+
+/* The interface is the same web app the Samsung build uses. It is copied from ../app at build
+   time, with the Samsung device layer swapped for the Android one in src/main/web/device.js. */
+def webOut = layout.buildDirectory.dir('generated/cleanframe-web')
+def appVersion = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json')).version
+
+tasks.register('prepareWeb', Sync) {
+    into webOut.map { it.dir('www') }
+    from(rootProject.file('../app')) {
+        exclude 'device.js', 'config.xml', 'icon.png'
+        // Same exclusions as the public Samsung export: no private fonts or retained study tools.
+        exclude 'assets/private-fonts/**', '**/PP*.ttf', '**/PP*.otf', '**/PP*.woff', '**/PP*.woff2'
+        exclude 'grid.css', 'optics.js', 'assets/grid/**', 'assets/vendor/**', 'assets/wallpapers/*-glass-*.png'
+    }
+    from('src/main/web') { include 'device.js' }
+    from(rootProject.file('..')) { include 'LICENSE', 'THIRD_PARTY_NOTICES.md' }
+}
+
+android {
+    namespace 'com.cleanframe.androidtv'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.cleanframe.androidtv'
+        minSdk 26 // Android 8.0; every Mi Box has received at least this.
+        targetSdk 35
+        versionCode 1
+        versionName appVersion
+    }
+
+    /* Your own signing key, kept out of Git (AGENTS.md). Android only installs an update over the
+       app when it is signed with the same key, so keep using one key to keep your Home settings.
+       Default location: ../.local/android/cleanframe.jks, or set CLEANFRAME_KEYSTORE. Without
+       a key, the build falls back to this computer's Android debug key. */
+    def keyFile = file(System.getenv('CLEANFRAME_KEYSTORE') ?: rootProject.file('../.local/android/cleanframe.jks'))
+    def keyPass = System.getenv('CLEANFRAME_KEYSTORE_PASSWORD') ?: 'cleanframe'
+    signingConfigs {
+        own {
+            storeFile keyFile
+            storePassword keyPass
+            keyAlias System.getenv('CLEANFRAME_KEY_ALIAS') ?: 'cleanframe'
+            keyPassword keyPass
+        }
+    }
+
+    buildTypes {
+        debug { if (keyFile.isFile()) signingConfig signingConfigs.own }
+        release {
+            minifyEnabled false
+            signingConfig keyFile.isFile() ? signingConfigs.own : signingConfigs.debug
+        }
+    }
+
+    sourceSets {
+        main { assets.srcDirs += webOut }
+    }
+
+    androidResources {
+        // Fonts and photographs are already compressed; leave them as-is for faster loading.
+        noCompress += ['woff2', 'ttf', 'jpg', 'png']
+    }
+
+    lint {
+        checkReleaseBuilds false // The page is plain web code; lint has nothing useful to stop a build for.
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+tasks.named('preBuild') { dependsOn 'prepareWeb' }

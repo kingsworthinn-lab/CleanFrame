@@ -63,7 +63,7 @@ The signing and TV scripts are specific to my setup. Your agent will need to ada
 | App installation | Signed installation and launch commands succeeded through 0.6.1. Latest rendering and remote feel still need physical observation. |
 | App launch and Home | Netflix/YouTube launch and physical Home from Netflix were confirmed on the reference setup. |
 | Still open | Normal power-on after streaming/Art Mode, corrected Smart Hub escape and native Art Mode destinations need definite physical checks. |
-| Other TVs | No compatibility claim. This is Tizen source; Android TV, Google TV, LG webOS and Roku need their own implementations. |
+| Other TVs | No compatibility claim. This is Tizen source. An untested Android TV build (for example a Mi Box plugged into the Frame) is in [`android/`](android/README.md); Google TV, LG webOS and Roku need their own implementations. |
 
 The detailed [device record](docs/tv-status.md) separates observed results from SDK responses. Native Home/startup uses undocumented, guarded helpers; it is optional and can fail after firmware changes. Keep a recovery baseline before attempting that work. The app can be opened manually without it.
 
@@ -83,6 +83,7 @@ The browser checks use isolated Chromium profiles and a loopback preview. They n
 | --- | --- |
 | `app/` | Current packaged UI and runtime assets |
 | `scripts/` | Preview, validation, asset generation and reference TV tools |
+| [`android/`](android/README.md) | Android TV app that wraps `app/` with an Android device layer |
 | [Development](docs/development.md) / [testing](docs/testing.md) | Runtime map, preferences, checks and device boundaries |
 | [Assets](docs/assets.md) / [third-party notices](THIRD_PARTY_NOTICES.md) | Rendering recipes, font separation and asset provenance |
 | [Asset sources](docs/asset-sources.md) | Photo credits and verification of the bundled third-party assets |

@@ -27,3 +27,13 @@ PP*.woff2
 /explorations/
 /docs/research/
 /docs/articles/
+
+# Android TV build output (signing keys belong in .local/android/)
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties
+/android/.idea/
+*.jks
+*.keystore
+*.apk
