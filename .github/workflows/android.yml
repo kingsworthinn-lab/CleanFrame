@@ -6,6 +6,11 @@ on:
   pull_request:
     paths: ['app/**', 'android/**', 'package.json', '.github/workflows/android.yml']
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the APK as a GitHub release, so the Mi Box can download it by web address'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -13,6 +18,8 @@ permissions:
 jobs:
   apk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Only used by the opt-in release step below.
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -53,3 +60,16 @@ jobs:
           name: CleanFrame-AndroidTV
           path: android/app/build/outputs/apk/release/CleanFrame-AndroidTV.apk
           if-no-files-found: error
+      # Opt-in only (publishing is a separate decision, see AGENTS.md). The latest APK is then at
+      # https://github.com/<owner>/<repo>/releases/latest/download/CleanFrame-AndroidTV.apk
+      - name: Publish release
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          gh release create "android-v$version-$GITHUB_RUN_NUMBER" \
+            android/app/build/outputs/apk/release/CleanFrame-AndroidTV.apk \
+            --title "CleanFrame for Android TV $version (build $GITHUB_RUN_NUMBER)" \
+            --notes "Untested Android TV build of CleanFrame. Install guide: android/README.md. Third-party asset terms: THIRD_PARTY_NOTICES.md." \
+            --target "$GITHUB_SHA" --latest

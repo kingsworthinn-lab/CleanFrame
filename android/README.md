@@ -36,6 +36,7 @@ In your fork, go to **Settings › Secrets and variables › Actions** and add t
 
 Pick whichever route is easiest:
 
+- **Straight onto the box, with no computer.** When you run the build, tick **Publish the APK as a GitHub release**. On the Mi Box, install *Downloader* (by AFTVnews) from Google Play and open it. Type `https://github.com/YOUR-NAME/CleanFrame/releases/latest/download/CleanFrame-AndroidTV.apk`, using your GitHub name, and choose **Install**. Downloader asks once for permission to install apps. That address is public, so anyone with it can download your build.
 - **From your phone.** Install *Send files to TV* on both the phone and the Mi Box, send the APK, then open it on the box.
 - **From a USB stick.** Copy the APK onto it and open it with a file manager on the box, such as *X-plore File Manager*.
 - **From a computer with adb.** On the box, open **Settings › Device Preferences › About** and select **Build** seven times. Then turn on **Developer options › USB debugging** (some boxes call it network debugging). Run `adb connect <box-ip>` followed by `adb install -r CleanFrame-AndroidTV.apk`.
