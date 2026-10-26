@@ -1,11 +1,10 @@
 name: Android TV build
 
 on:
+  # Every push builds the APK. Pushing to the android-release branch also publishes it (opt-in,
+  # like the box below): git push origin main:android-release
   push:
     branches: ['**']
-    # Pushing a tag such as android-v0.6.1-1 builds and publishes that version (opt-in, like the box below).
-    tags: ['android-v*']
-    paths: ['app/**', 'android/**', 'package.json', '.github/workflows/android.yml']
   pull_request:
     paths: ['app/**', 'android/**', 'package.json', '.github/workflows/android.yml']
   workflow_dispatch:
@@ -66,13 +65,12 @@ jobs:
       # Opt-in only (publishing is a separate decision, see AGENTS.md). The latest APK is then at
       # https://github.com/<owner>/<repo>/releases/latest/download/CleanFrame-AndroidTV.apk
       - name: Publish release
-        if: (github.event_name == 'workflow_dispatch' && inputs.publish) || startsWith(github.ref, 'refs/tags/android-v')
+        if: (github.event_name == 'workflow_dispatch' && inputs.publish) || github.ref == 'refs/heads/android-release'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           version=$(node -p "require('./package.json').version")
           tag="android-v$version-$GITHUB_RUN_NUMBER"
-          if [ "$GITHUB_REF_TYPE" = tag ]; then tag="$GITHUB_REF_NAME"; fi
           gh release create "$tag" \
             android/app/build/outputs/apk/release/CleanFrame-AndroidTV.apk \
             --title "CleanFrame for Android TV $version (build $GITHUB_RUN_NUMBER)" \
